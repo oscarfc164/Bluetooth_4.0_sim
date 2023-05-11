@@ -55,5 +55,14 @@ bfp.coder()
 bfp.decoder()
 
 
+##### Efecto de hacer y deshacer la codificación de fuente #####
+
+""" En el ejemplo de prueba utilizado, "HOLA" está compuesto por caracteres 
+ASCII que tienen una representación binaria directa. Debido a lo anterior 
+el proceso de codificación y decodificación no altera el mensaje original. 
+Por lo tanto, es correcto que tanto el archivo tweet_in.txt como el archivo 
+tweet_out.txt contengan la cadena "HOLA" en este caso."""
+
+
 
 
