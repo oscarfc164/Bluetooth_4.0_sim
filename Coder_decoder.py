@@ -4,15 +4,15 @@ import binascii
 # Objeto encargado de codificar y decodificar mensaje
 class Bluetooth_sim:
 
-    def __init__(self, text_in, text_out):
+    def __init__(self, fuente, sumidero):
         # Texto de entrada "tweet" 
-        self.text_in = text_in
+        self.fuente = fuente
         # Texto de salida en binario
-        self.text_out = text_out
+        self.sumidero = sumidero
 
     def coder(self):
         #Read from txt
-        with open(self.text_in, "r") as file:
+        with open(self.fuente, "r") as file:
             cadena = file.read()
             print("El mensaje es:",cadena)
         #Coding the text read
@@ -30,19 +30,19 @@ class Bluetooth_sim:
         decode = int(self.coder, 2)
         text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode()
 
-        with open(text_out, 'w') as file: 
+        with open(sumidero, 'w') as file: 
             file.write(text)
 
 
-text_in = 'tweet_in.txt'
-text_out = 'tweet_out.txt'
+fuente = 'tweet_in.txt'
+sumidero = 'tweet_out.txt'
 
 #########################################
 # Codificación de fuente de información #
 #########################################
 
 # Secuencia de bits de información en salida de codificador de fuente
-bf = Bluetooth_sim(text_in, text_out)
+bf = Bluetooth_sim(fuente, sumidero)
 
 ############################################
 # Simulación de canal de transmisión ideal #
