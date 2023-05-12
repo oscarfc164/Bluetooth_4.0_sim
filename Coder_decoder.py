@@ -34,8 +34,8 @@ class Bluetooth_sim:
             file.write(text)
 
 
-fuente = 'tweet_in.txt'
-sumidero = 'tweet_out.txt'
+fuente = 'fuente.txt'
+sumidero = 'sumidero.txt'
 
 #########################################
 # Codificación de fuente de información #
