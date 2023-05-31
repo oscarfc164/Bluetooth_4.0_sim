@@ -10,7 +10,7 @@ class Bluetooth_sim:
         # Texto de salida en binario
         self.sumidero = sumidero
 
-    def coder(self):
+    def source_coder(self):
         #Read from txt
         with open(self.fuente, "r") as file:
             cadena = file.read()
@@ -25,8 +25,9 @@ class Bluetooth_sim:
             print("El mensaje codificado es: ", out_clean)
 
         return self.coder
+
     
-    def decoder(self):
+    def source_decoder(self):
         decode = int(self.coder, 2)
         text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode()
 
@@ -51,15 +52,15 @@ bf = Bluetooth_sim(fuente, sumidero)
 # Se copia informaciÃ³n de codificador de salida de fuente
 bfp = bf
 
-bfp.coder()
-bfp.decoder()
+bfp.source_coder()
+bfp.source_decoder()
 
 
-##### Efecto de hacer y deshacer la codificación de fuente #####
+##### Efecto de hacer y deshacer la codificaciï¿½n de fuente #####
 
-""" En el ejemplo de prueba utilizado, "HOLA" está compuesto por caracteres 
-ASCII que tienen una representación binaria directa. Debido a lo anterior 
-el proceso de codificación y decodificación no altera el mensaje original. 
+""" En el ejemplo de prueba utilizado, "HOLA" estï¿½ compuesto por caracteres 
+ASCII que tienen una representaciï¿½n binaria directa. Debido a lo anterior 
+el proceso de codificaciï¿½n y decodificaciï¿½n no altera el mensaje original. 
 Por lo tanto, es correcto que tanto el archivo tweet_in.txt como el archivo 
 tweet_out.txt contengan la cadena "HOLA" en este caso."""
 
