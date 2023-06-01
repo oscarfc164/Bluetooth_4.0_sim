@@ -80,6 +80,21 @@ def simetric_binary_channel(bc):
 
     return bc_prima
 
+def simetric_binary_channel_user(bc, prob):
+    #prob = (int(input("Indique probabilidad de error: "))/100)    
+    bc_prima = ''
+    for bit in bc:
+        ran_num = random.random()
+
+        if ran_num < (1-prob):
+            e_bit = bit
+        else:
+            e_bit = 1 - int(bit)
+
+        bc_prima += str(e_bit)
+
+    return bc_prima
+
 def channel_decoder(bc_prima):
     # Matriz H (3x7) - Para detección y corrección de errores
     H = np.array([
@@ -159,21 +174,40 @@ def source_decoder(bfT, text_out):
     print("El mensaje luego de el proceso de decodificación de canal y fuente es: ", cadena_sumidero)
 
 def opcion_1():
-    print("Ha seleccionado la opción 1")
+
+
+    print("Ha seleccionado la codificación de canal")
+    print("Menú de opciones:")
+    print("1. Opción 1: Codificación de canal ideal")
+    print("2. Opción 2: Codificación de canal simétrico binario")
+    opcion_seleccionada_canal = int(input("Seleccione una opción: "))
+
+    if opcion_seleccionada_canal==1:
+        # Se selecciona canal ideal
+        opcion_1_1()
+    else:
+        opcion_1_2()
+
+
+
+# En caso de escogerse codificación de canal, la opción_1_1 es canal ideal
+def opcion_1_1():
+
+
+    print("Ha seleccionado la opción de codificación de canal ideal")
     
     sequence = random_sequence(32)
 
     bc = channel_encoder(sequence)
     print(bc)
-
-    bc_prima = simetric_binary_channel(bc)
+    # Llamado a función de canal ideal
+    bc_prima = ideal_transmition_channel(bc)
     print(bc_prima)
 
 
     bfT = channel_decoder(bc_prima)
     print("Secuencia enviada: ", sequence)
     print("Secuencia recibida: ", bfT)
-
 
     num_bits = len(bc)
     num_bits_diferentes = sum(bit1 != bit2 for bit1, bit2 in zip(bc, bc_prima))
@@ -182,7 +216,37 @@ def opcion_1():
     num_bits2 = len(sequence)
     num_bits_diferentes2 = sum(bit3 != bit4 for bit3, bit4 in zip(sequence, bfT))
     porcentaje_error2 = (num_bits_diferentes2 / num_bits2) * 100
-    print("% despues de correccion de errores",porcentaje_error2)
+    print("% despues de correccion de errores",porcentaje_error2)  
+
+# En caso de escogerse codificación de canal, la opción_1_2 es canal simétrico
+def opcion_1_2():
+    print("Ha seleccionado la opción de codificación de canal simétrico binario")
+    # El usuario ingresa probabilidad de error deseada
+    entrada = int(input("Indique probabilidad de error: "))
+    prob=entrada/100
+
+    sequence = random_sequence(32)
+
+    bc = channel_encoder(sequence)
+    print(bc)
+
+    # Llamado a función de canal ideal
+    bc_prima = simetric_binary_channel_user(bc,prob)
+    print(bc_prima)
+
+
+    bfT = channel_decoder(bc_prima)
+    print("Secuencia enviada: ", sequence)
+    print("Secuencia recibida: ", bfT)
+
+    num_bits = len(bc)
+    num_bits_diferentes = sum(bit1 != bit2 for bit1, bit2 in zip(bc, bc_prima))
+    porcentaje_error = (num_bits_diferentes / num_bits) * 100
+    print("% antes de correccion de errores",porcentaje_error)
+    num_bits2 = len(sequence)
+    num_bits_diferentes2 = sum(bit3 != bit4 for bit3, bit4 in zip(sequence, bfT))
+    porcentaje_error2 = (num_bits_diferentes2 / num_bits2) * 100
+    print("% despues de correccion de errores",porcentaje_error2) 
 
 def opcion_2():
     print("Ha seleccionado la opción 2")
@@ -227,11 +291,14 @@ def menu(opcion):
     # Ejecutar la función
     funcion()
 
+#############################################
+# Ejecución principal de simulación de canal#
+#############################################
+
 # Menú
 print("Menú de opciones:")
 print("1. Opción 1: Codificación de canal")
 print("2. Opción 2: Codificación de fuente y canal")
 
 opcion_seleccionada = int(input("Seleccione una opción: "))
-
 menu(opcion_seleccionada)
