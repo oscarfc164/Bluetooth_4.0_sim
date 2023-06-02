@@ -171,7 +171,7 @@ def source_decoder(bfT, text_out):
     with open(text_out, "r") as file:
             cadena_sumidero = file.read()
     
-    print("El mensaje luego de el proceso de decodificación de canal y fuente es: ", cadena_sumidero)
+    print("El mensaje luego del proceso de decodificación de canal y fuente es: ", cadena_sumidero)
 
 def opcion_1():
 
