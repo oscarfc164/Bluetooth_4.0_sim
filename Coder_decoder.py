@@ -29,6 +29,7 @@ class Bluetooth_sim:
     
     def source_decoder(self):
         decode = int(self.coder, 2)
+        print(decode)
         text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode()
 
         with open(text_out, 'w') as file: 

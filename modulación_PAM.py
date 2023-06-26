@@ -177,6 +177,9 @@ def demodulacionPAM(x_k):
     # Lista para almacenar la secuencia de bits demodulada
     bits_demodulados = []
     
+    # Obtener la longitud original de la secuencia de bits
+    longitud_original = len(x_k) * int(np.log2(M))
+    
     # Iterar sobre cada símbolo de amplitud en la secuencia modulada
     for simbolo in x_k:
         # Buscar el símbolo de amplitud correspondiente en el diccionario inverso
@@ -185,13 +188,17 @@ def demodulacionPAM(x_k):
         # Agregar los bits a la secuencia demodulada
         bits_demodulados.extend(bits)
     
-    # Ajustar la longitud de la secuencia demodulada
-    bits_demodulados = bits_demodulados[:len(x_k) * int(np.log2(M))-1]
+    # Verificar si se agregaron ceros durante la modulación
+    diferencia = len(bits_demodulados) - longitud_original
+    if diferencia > 0:
+        # Eliminar los ceros adicionales
+        bits_demodulados = bits_demodulados[:-diferencia]
     
     # Convertir la lista de bits demodulados en un array numpy
     bits_demodulados = np.array(bits_demodulados)
     
     return bits_demodulados
+
 
 
 
@@ -263,7 +270,8 @@ def channel_decoder(bc_prima):
 
 def source_decoder(bfT, text_out):
     decode = int(bfT, 2)
-    text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode('ascii')
+    print(decode)
+    text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode()
 
 
     with open(text_out, 'w') as file: 
