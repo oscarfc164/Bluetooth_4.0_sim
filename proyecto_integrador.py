@@ -1,6 +1,8 @@
 import random 
 import numpy as np
 import binascii
+import matplotlib.pyplot as plt
+M = 4 
 
 def random_sequence(length):
     zeros = length // 2
@@ -95,6 +97,183 @@ def simetric_binary_channel_user(bc, prob):
 
     return bc_prima
 
+
+def modulacionPAM(bc):
+    # Verificar que la longitud de la secuencia de bits bc(ℓ) sea múltiplo de log2(M)
+    b = int(np.log2(M))
+    if len(bc) % b != 0:
+        # Rellenar con ceros si no es múltiplo
+        bc = np.concatenate([bc, np.zeros(b - len(bc) % b)])
+
+    # Dividir la secuencia de bits en grupos de M
+    grupos = [bc[i:i+int(np.log2(M))] for i in range(0, len(bc), int(np.log2(M)))]
+    #print(grupos)
+
+    # Diccionario de asignación de símbolos de amplitud
+    simbolos = {
+        (0, 0): -1,
+        (0, 1): -1/3,
+        (1, 0): 1,
+        (1, 1): 1/3
+        }
+    
+    #Señal Modulada 
+    x_k = []
+    for señal in grupos:
+        t_señal = tuple(señal)
+        simbolo = simbolos[tuple(t_señal)]
+        x_k.append(simbolo)
+    x_k = np.array(x_k)
+
+    #Definimos el tren de pulsos de amplitud 1 y longitud 20
+    t = np.arange(0,len(x_k),1)
+    p = np.ones_like(t)
+    #print(t)
+    x_k = x_k*p
+    #print(x_k)
+
+    # Graficar el tren de pulsos
+    plt.stem(t, x_k, linefmt='b-', markerfmt='bo', basefmt='r-')
+
+    # Configurar etiquetas y título del gráfico
+    plt.xlabel('Tiempo')
+    plt.ylabel('Amplitud')
+    plt.title('MODULACIÓN PAM')
+
+    # Ajustar los límites del eje y
+    plt.ylim(-1.5, 1.5)
+    plt.show()
+
+    return x_k
+
+def modulacionASK(bc, fc, Ts):
+    #Modulacion Banda Base
+    # Verificar que la longitud de la secuencia de bits bc(ℓ) sea múltiplo de log2(M)
+    b = int(np.log2(M))
+    if len(bc) % b != 0:
+        # Rellenar con ceros si no es múltiplo
+        bc = np.concatenate([bc, np.zeros(b - len(bc) % b)])
+
+    # Dividir la secuencia de bits en grupos de M
+    grupos = [bc[i:i+int(np.log2(M))] for i in range(0, len(bc), int(np.log2(M)))]
+
+    # Diccionario de asignación de símbolos de amplitud
+    simbolos = {
+        (0, 0): -1,
+        (0, 1): -1/3,
+        (1, 0): 1,
+        (1, 1): 1/3
+        }
+
+    # Secuencia de símbolos a(n)
+    an = [simbolos[tuple(grupo)] for grupo in grupos]
+
+    #Modulacion paso banda ASK 
+
+    # Secuencia de muestras c(k)
+    Ns = int(Ts * fc)
+    t = np.arange(0, Ns)
+    c = np.cos(2 * np.pi * fc * t / Ns)
+
+    # Secuencia de señal modulada sn(k)
+    sn = np.kron(an, c)
+
+    return sn
+
+
+def add_noise(x, snr):
+    # Calcular la potencia de la señal transmitida
+    signal_power = np.mean(np.abs(x) ** 2)
+
+    # Calcular la potencia del ruido en función de la relación señal-ruido (SNR)
+    noise_power = signal_power / (10 ** (snr / 10))
+
+    # Generar el ruido gaussiano
+    noise = np.random.normal(0, np.sqrt(noise_power), len(x))
+
+    # Sumar el ruido a la señal transmitida
+    x_r = x + noise
+
+    return x_r
+
+
+def demodulacionPAM(x_k):
+    # Diccionario inverso de asignación de símbolos de amplitud
+    simbolos_inversos = {
+        -1: (0, 0),
+        -1/3: (0, 1),
+        1: (1, 0),
+        1/3: (1, 1)
+    }
+    
+    # Lista para almacenar la secuencia de bits demodulada
+    bits_demodulados = []
+    
+    # Obtener la longitud original de la secuencia de bits
+    longitud_original = len(x_k) * int(np.log2(M))
+    
+    # Iterar sobre cada símbolo de amplitud en la secuencia modulada
+    for simbolo in x_k:
+        # Buscar el símbolo de amplitud correspondiente en el diccionario inverso
+        bits = simbolos_inversos[simbolo]
+        
+        # Agregar los bits a la secuencia demodulada
+        bits_demodulados.extend(bits)
+    
+    # Verificar si se agregaron ceros durante la modulación
+    diferencia = len(bits_demodulados) - longitud_original
+    if diferencia > 0:
+        # Eliminar los ceros adicionales
+        bits_demodulados = bits_demodulados[:-diferencia]
+    
+    # Convertir la lista de bits demodulados en un array numpy
+    bits_demodulados = np.array(bits_demodulados)
+    
+    return bits_demodulados
+
+def demodulador_ASK(sn, fc, Ts):
+    # Número de niveles de amplitud en la modulación ASK
+    M = 4
+
+    # Umbrales para la detección de amplitud
+    umbrales = [-1.5, -0.5, 0.5, 1.5]
+
+    # Número de muestras por símbolo
+    Ns = int(Ts * fc)
+
+    # Número de símbolos en la señal modulada
+    num_simbolos = len(sn) // Ns
+
+    # Inicializar la secuencia de bits de salida
+    bits_recibidos = []
+
+    # Procesar cada símbolo
+    for i in range(num_simbolos):
+        # Obtener una muestra del símbolo
+        muestra_simbolo = sn[i * Ns: (i + 1) * Ns]
+
+        # Calcular el promedio de la muestra del símbolo
+        promedio_muestra = np.mean(muestra_simbolo)
+
+        # Encontrar el índice del umbral más cercano al promedio de la muestra
+        indice_umbral = min(range(len(umbrales)), key=lambda x: abs(umbrales[x] - promedio_muestra))
+
+        # Convertir el índice del umbral en la secuencia de bits del símbolo
+        bits_simbolo = [int(bit) for bit in np.binary_repr(indice_umbral, width=int(np.log2(M)))]
+
+        # Agregar la secuencia de bits del símbolo a la secuencia de bits recibidos
+        bits_recibidos.extend(bits_simbolo)
+
+    # Verificar si se agregaron ceros adicionales durante la modulación
+    diferencia = len(bits_recibidos) % int(np.log2(M))
+    if diferencia > 0:
+        # Eliminar los ceros adicionales
+        bits_recibidos = bits_recibidos[:-diferencia]
+
+    return np.array(bits_recibidos)
+
+
+
 def channel_decoder(bc_prima):
     # Matriz H (3x7) - Para detección y corrección de errores
     H = np.array([
@@ -163,7 +342,9 @@ def channel_decoder(bc_prima):
 
 def source_decoder(bfT, text_out):
     decode = int(bfT, 2)
+    print(decode)
     text = decode.to_bytes((decode.bit_length() + 7) // 8, 'big').decode()
+
 
     with open(text_out, 'w') as file: 
         file.write(text)
@@ -172,6 +353,8 @@ def source_decoder(bfT, text_out):
             cadena_sumidero = file.read()
     
     print("El mensaje luego del proceso de decodificación de canal y fuente es: ", cadena_sumidero)
+
+
 
 def opcion_1():
 
@@ -250,8 +433,10 @@ def opcion_1_2():
 
 def opcion_2():
     print("Ha seleccionado la opción 2")
+    
     text_in = 'fuente.txt'
     text_out = 'sumidero.txt'
+
 
     sequence = source_coder(text_in)
     bc = channel_encoder(sequence)
@@ -275,6 +460,104 @@ def opcion_2():
     source_decoder(bfT, text_out)
 
 
+def opcion_3():
+
+    print("Ha seleccionado la opción 3")
+    # El usuario ingresa probabilidad de error deseada
+    entrada = int(input("Indique probabilidad de error: "))
+    prob=entrada/100
+
+    text_in = 'fuente.txt'
+    text_out = 'sumidero.txt'
+
+
+    sequence = source_coder(text_in)
+    bc = channel_encoder(sequence)
+    bc_prima = simetric_binary_channel_user(bc, prob)
+    lista_1 = []
+
+    for caracter in bc_prima:
+        lista_1.append(caracter)
+    #print(lista)
+
+    arreglo = np.array(lista_1).astype(int)
+    #print(arreglo)
+
+
+    x_k = modulacionPAM(arreglo)
+    x_R = add_noise(x_k, 10)
+    x_bc = demodulacionPAM(x_k)
+
+    cadena_bits = ''.join(str(bit) for bit in x_bc)
+    print(cadena_bits)
+
+    bfT = channel_decoder(cadena_bits)
+    bfT1=bfT
+
+
+    print("Secuencia enviada: ", sequence)
+    print("La secuencia modulada x(k): ", x_k)
+    print("Secuencia con ruido: ", x_R)
+    print("La secuencia demodulada es: ", cadena_bits)
+    
+    print("Secuencia recibida: ", bfT1)
+
+
+    source_decoder(bfT1, text_out)
+
+def opcion_4():
+
+    print("Ha seleccionado la opción 4")
+    # El usuario ingresa probabilidad de error deseada
+    entrada = int(input("Indique probabilidad de error para el canal simetrico binario: "))
+    prob=entrada/100
+
+    text_in = 'fuente.txt'
+    text_out = 'sumidero.txt'
+
+
+    sequence = source_coder(text_in)
+    bc = channel_encoder(sequence)
+    bc_prima = simetric_binary_channel_user(bc, prob)
+    #print(bc_prima)
+    lista_1 = []
+
+    for caracter in bc_prima:
+        lista_1.append(caracter)
+    #print(lista)
+
+    arreglo = np.array(lista_1).astype(int)
+    #print(arreglo)
+
+    fc = 10e3  # Frecuencia de la portadora (10 kHz)
+    Ts = 1e-3  # Duración de la señal c(t) (1 ms)
+
+
+    s_k = modulacionASK(arreglo, fc, Ts)
+
+    #Realizar cambios aleatorios en las muestras transmitidas
+    #N = np.random.normal(0, 1, len(s_k))
+    #s_R = s_k + N
+    s_R = add_noise(s_k, 30)
+    bc_R = demodulador_ASK(s_k, fc, Ts)
+
+    bc_R = ''.join(str(bit) for bit in bc_R)
+
+    bfT = channel_decoder(bc_R)
+    bfT1=bfT
+
+
+    print("Secuencia enviada: ", sequence)
+    print("La secuencia modulada x(k): ", s_k)
+    print("Secuencia con ruido: ", s_R)
+    print("La secuencia demodulada es: ", bc_R)
+    
+    print("Secuencia recibida: ", bfT1)
+
+
+    source_decoder(bfT1, text_out)
+    
+
 
 def opcion_predeterminada():
     print("Opción inválida")
@@ -284,6 +567,8 @@ def menu(opcion):
     switch = {
         1: opcion_1,
         2: opcion_2,
+        3: opcion_3,
+        4: opcion_4
     }
     # Obtener la función correspondiente a la opción seleccionada
     funcion = switch.get(opcion, opcion_predeterminada)
@@ -298,6 +583,8 @@ def menu(opcion):
 print("Menú de opciones:")
 print("1. Opción 1: Codificación de canal")
 print("2. Opción 2: Codificación de fuente y canal")
+print("3. Opción 3: Codificación de fuente, canal y modulación banda base")
+print("4. Opción 4: Codificación de fuente, canal y modulación paso banda")
 
 opcion_seleccionada = int(input("Seleccione una opción: "))
 menu(opcion_seleccionada)
