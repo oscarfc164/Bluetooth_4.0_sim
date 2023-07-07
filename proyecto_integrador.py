@@ -562,6 +562,9 @@ def opcion_4():
 def opcion_predeterminada():
     print("Opción inválida")
 
+def salir():
+    print("Saliendo del programa.")
+
 # Menú de casos
 def menu(opcion):
     switch = {
@@ -575,16 +578,27 @@ def menu(opcion):
     # Ejecutar la función
     funcion()
 
+    imprimir_menu()
 #############################################
 # Ejecución principal de simulación de canal#
 #############################################
 
 # Menú
-print("Menú de opciones:")
-print("1. Opción 1: Codificación de canal")
-print("2. Opción 2: Codificación de fuente y canal")
-print("3. Opción 3: Codificación de fuente, canal y modulación banda base")
-print("4. Opción 4: Codificación de fuente, canal y modulación paso banda")
+def imprimir_menu():
+    print("\nMenú de opciones:")
+    print("0. Salir")
+    print("1. Opción 1: Codificación de canal")
+    print("2. Opción 2: Codificación de fuente y canal")
+    print("3. Opción 3: Codificación de fuente, canal y modulación banda base")
+    print("4. Opción 4: Codificación de fuente, canal y modulación paso banda")
 
-opcion_seleccionada = int(input("Seleccione una opción: "))
-menu(opcion_seleccionada)
+
+imprimir_menu()
+
+while True:
+    opcion_seleccionada = int(input("Seleccione una opción: "))
+    if opcion_seleccionada == 0:
+        salir()
+        break
+    else:
+        menu(opcion_seleccionada)
