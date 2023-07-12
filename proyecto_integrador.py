@@ -178,6 +178,15 @@ def modulacionASK(bc, fc, Ts):
     # Secuencia de señal modulada sn(k)
     sn = np.kron(an, c)
 
+    # Graficar la señal modulada
+    t = np.linspace(0, len(sn) / fc, len(sn))
+    plt.plot(t, sn)
+    plt.xlabel('Tiempo (s)')
+    plt.ylabel('Amplitud')
+    plt.title('Señal Modulada ASK')
+    plt.grid(True)
+    plt.show()
+
     return sn
 
 
